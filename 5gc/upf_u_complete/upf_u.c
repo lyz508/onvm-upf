@@ -824,6 +824,12 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
         return 0;
     }
     uint32_t cal_pktlen = 0;
+    // time check
+    struct timespec start, end;
+    double elapsed_time;
+    // Record start time
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     UTLT_Trace("Get packet\n");
     UTLT_Info("Handle PKT from port: %d [len: %d]", pkt->port, pkt->pkt_len);
     cal_pktlen = pkt->pkt_len - sizeof(struct rte_ether_hdr) - sizeof(struct rte_ipv4_hdr) - sizeof(struct rte_udp_hdr);
@@ -979,6 +985,13 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
             ue_table[index].ue_nqos_tb_params.tb_tokens -= cal_pktlen;
             meta->action = ONVM_NF_ACTION_OUT;
         }
+
+        // Record end time
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        // Calculate time difference in seconds
+        elapsed_time = (end.tv_sec - start.tv_sec) +
+                    (end.tv_nsec - start.tv_nsec) / 1e9;
+        UTLT_Warning("Elapsed Time: %.9f seconds", elapsed_time);
     }
     return status;
 }
