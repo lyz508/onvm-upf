@@ -260,22 +260,22 @@ static inline int
 trtcmPolicer(struct onvm_pkt_meta *meta, int color_result){
     if (meta->action == ONVM_NF_ACTION_DROP) {
         meta->flags = RTE_COLOR_RED;
-        UTLT_Info("TB not enough & traffic flow");
+        // UTLT_Info("TB not enough & traffic flow");
         return 0;
     }
     switch (color_result){
     case RTE_COLOR_RED:
-        UTLT_Info("\033[0;31mRED(%d)\033[0m, drop pkt", RTE_COLOR_RED);
+        // UTLT_Info("\033[0;31mRED(%d)\033[0m, drop pkt", RTE_COLOR_RED);
         meta->flags = RTE_COLOR_RED;
         meta->action = ONVM_NF_ACTION_DROP;
         break;
     case RTE_COLOR_YELLOW:
-        UTLT_Info("\033[0;32mYELLOW(%d)\033[0m, best effort pkt fwd", RTE_COLOR_YELLOW);
+        // UTLT_Info("\033[0;32mYELLOW(%d)\033[0m, best effort pkt fwd", RTE_COLOR_YELLOW);
         meta->flags = RTE_COLOR_YELLOW;
         meta->action = ONVM_NF_ACTION_DROP;
         break;
     case RTE_COLOR_GREEN:
-        UTLT_Info("\033[0;33mGREEEN(%d)\033[0m, guaranted pkt fwd.", RTE_COLOR_GREEN);
+        // UTLT_Info("\033[0;33mGREEEN(%d)\033[0m, guaranted pkt fwd.", RTE_COLOR_GREEN);
         meta->flags = RTE_COLOR_GREEN;
         meta->action = ONVM_NF_ACTION_OUT;
         break;
@@ -331,13 +331,7 @@ int ftSearch(uint32_t subnet) {
 }
 
 bool ftAddEntry(uint32_t subnet, int flow_idx) {
-    if (iPFlowsLen >= APP_FLOWS_MAX) {
-        printf("Error: Maximum flow entries reached.\n");
-        return false;
-    }
-
-    if (ftSearch(subnet) != -1) {
-        printf("Error: Subnet %u already exists.\n", subnet);
+    if (iPFlowsLen >= APP_FLOWS_MAX || ftSearch(subnet) != -1) {
         return false;
     }
 
@@ -431,7 +425,7 @@ addEntrybyUeIp(uint32_t ue_ip, uint32_t ue_ambr, uint32_t ue_gbr,uint32_t ue_mbr
             ue_table[i].ue_qos_tb_params.tb_tokens = qos_rate;
             ue_table[i].ue_qos_tb_params.last_cycle = rte_get_tsc_cycles();
             ue_table[i].ue_qos_tb_params.cur_cycles = rte_get_tsc_cycles(); 
-            UTLT_Info("QoS Rate: %d", qos_rate);
+            // UTLT_Info("QoS Rate: %d", qos_rate);
 
             uint32_t nqos_rate = ue_ambr - qos_rate;
 
@@ -440,8 +434,7 @@ addEntrybyUeIp(uint32_t ue_ip, uint32_t ue_ambr, uint32_t ue_gbr,uint32_t ue_mbr
             ue_table[i].ue_nqos_tb_params.tb_tokens = nqos_rate;
             ue_table[i].ue_nqos_tb_params.last_cycle = rte_get_tsc_cycles();
             ue_table[i].ue_nqos_tb_params.cur_cycles = rte_get_tsc_cycles();
-            UTLT_Info("non QoS Rate: %d", nqos_rate); 
-
+            // UTLT_Info("non QoS Rate: %d", nqos_rate); 
 
             break;
         }
@@ -533,13 +526,13 @@ GetPdrByUeIpAddress(struct rte_mbuf *pkt, uint32_t ue_ip) { // dl
                 // new ft entry
                 key = pdr->pdi.flags.sdfFilter ? pkt->port + fd_target : pkt->port;
                 if (ftSearch(key) < 0 && qer->flags.maximumBitrate) {
-                    UTLT_Info("QER ID: %d key: %d", qerId, key);
+                    // UTLT_Info("QER ID: %d key: %d", qerId, key);
                     struct rte_meter_trtcm_params trtcm_params = app_trtcm_params;
-                    if (!ftAddEntry(key, trTCMidx)) {
-                        UTLT_Warning("FT add failed");
-                    }
-                    UTLT_Info("Successfully add %d(%d) %d", key, hashFunc(key), trTCMidx);
-                    UTLT_Info("Find MBR (DL: %lu) in QERs", qer->maximumBitrate.dl);
+                    // if (!ftAddEntry(key, trTCMidx)) {
+                    //     UTLT_Warning("FT add failed");
+                    // }
+                    // UTLT_Info("Successfully add %d(%d) %d", key, hashFunc(key), trTCMidx);
+                    // UTLT_Info("Find MBR (DL: %lu) in QERs", qer->maximumBitrate.dl);
                     trtcm_params.pir = qer->maximumBitrate.dl * 1000 / 8;
                     if (qer->flags.guaranteedBitrate) {
                         UTLT_Info("Find GBR (DL: %lu) in QERs", qer->guaranteedBitrate.dl);
@@ -553,7 +546,7 @@ GetPdrByUeIpAddress(struct rte_mbuf *pkt, uint32_t ue_ip) { // dl
                         rte_meter_trtcm_config(&app_flows[trTCMidx], &app_trtcm_profile);
                     }
                     // config trtcm table 
-                    UTLT_Info("TRTCM params: %d %d %d %d\n", trtcm_params.cir, trtcm_params.pir, trtcm_params.cbs, trtcm_params.pbs);
+                    // UTLT_Info("TRTCM params: %d %d %d %d\n", trtcm_params.cir, trtcm_params.pir, trtcm_params.cbs, trtcm_params.pbs);
                     trTCMidx ++;
                 }
             }
@@ -600,7 +593,7 @@ GetQerByUEIpAddress(uint32_t ue_ip, char *IP) {
         }
     }
     else {
-        UTLT_Trace("The UE IP already exists in the table");
+        // UTLT_Trace("The UE IP already exists in the table");
         return NULL;
     }
 }
@@ -824,14 +817,14 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
         return 0;
     }
     uint32_t cal_pktlen = 0;
+
+    UTLT_Trace("Get packet\n");
+
     // time check
-    struct timespec start, end;
+    struct timespec start, end, f1, f2, f3;
     double elapsed_time;
     // Record start time
     clock_gettime(CLOCK_MONOTONIC, &start);
-
-    UTLT_Trace("Get packet\n");
-    UTLT_Info("Handle PKT from port: %d [len: %d]", pkt->port, pkt->pkt_len);
     cal_pktlen = pkt->pkt_len - sizeof(struct rte_ether_hdr) - sizeof(struct rte_ipv4_hdr) - sizeof(struct rte_udp_hdr);
 
     bool is_dl = false;
@@ -846,12 +839,15 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
     UPDK_PDR *pdr = NULL;
     // Step 1: Identify if it is a uplink packet or downlink packet
     char *src_address = convertToIpAddress(iph->src_addr);
-    UTLT_Info("Src IP is %s\n", src_address);
+    // UTLT_Info("Src IP is %s\n", src_address);
     char *dst_address = convertToIpAddress(iph->dst_addr);
-    UTLT_Info("Dst IP is %s\n", dst_address);
+    // UTLT_Info("Dst IP is %s\n", dst_address);
+
+    // clock
+    clock_gettime(CLOCK_MONOTONIC, &f1);
 
     if (iph->dst_addr == SELF_IP) {  //
-        UTLT_Info("It is uplink\n");
+        // UTLT_Info("It is uplink\n");
         struct rte_udp_hdr *udp_header = onvm_pkt_udp_hdr(pkt);
         if (udp_header == NULL) {
             return 0;
@@ -864,7 +860,7 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
 
     } else {
         // UTLT_Info("It is downlink, dst is %d\n", rte_cpu_to_be_32(iph->dst_addr));
-        UTLT_Info("It is downlink, dst is %s\n", convertToIpAddress(iph->dst_addr));
+        // UTLT_Info("It is downlink, dst is %s\n", convertToIpAddress(iph->dst_addr));
 
         struct timespec ts;
         timespec_get(&ts, TIME_UTC);
@@ -876,13 +872,15 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
         is_dl = true;
     }
 
+    // clock
+    clock_gettime(CLOCK_MONOTONIC, &f2);
+
     if (!pdr) {
         // UTLT_Error("no PDR found for %d, skip\n", rte_cpu_to_be_32(iph->dst_addr));
         UTLT_Error("no PDR found for %s, skip\n", convertToIpAddress(iph->dst_addr));
         // TODO(vivek): what to do?
         return 0;
     }
-    UTLT_Info("Got PDR ID is %u\n", pdr->pdrId);
     rte_pktmbuf_adj(pkt, sizeof(struct rte_ether_hdr));
 
     UPDK_FAR *far;
@@ -918,6 +916,9 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
         }
     }
 
+    // clock
+    clock_gettime(CLOCK_MONOTONIC, &f3);
+
     int status = 0, color_result = 0;
     status = HandlePacketWithFar(pkt, far, pdr->qer, meta);
     if (meta->action == ONVM_NF_ACTION_DROP) {
@@ -932,7 +933,7 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
         // check if the UE IP exists in the table and update the token
         int index = findIndexByUeIpAddress(rte_cpu_to_be_32(iph->dst_addr));
         if (index != -1) {
-            UTLT_Trace("Update token for UE IP: %s", convertToIpAddress(iph->dst_addr));
+            // UTLT_Trace("Update token for UE IP: %s", convertToIpAddress(iph->dst_addr));
             updateTokenbyIndex(index);
         }
         else {
@@ -985,14 +986,25 @@ packet_handler(struct rte_mbuf *pkt, struct onvm_pkt_meta *meta, struct onvm_nf_
             ue_table[index].ue_nqos_tb_params.tb_tokens -= cal_pktlen;
             meta->action = ONVM_NF_ACTION_OUT;
         }
+    }
 
-        // Record end time
+    if (is_dl) {
         clock_gettime(CLOCK_MONOTONIC, &end);
         // Calculate time difference in seconds
         elapsed_time = (end.tv_sec - start.tv_sec) +
-                    (end.tv_nsec - start.tv_nsec) / 1e9;
+                (end.tv_nsec - start.tv_nsec) / 1e9;
         UTLT_Warning("Elapsed Time: %.9f seconds", elapsed_time);
+        elapsed_time = (f1.tv_sec - start.tv_sec) +
+                (f1.tv_nsec - start.tv_nsec) / 1e9;
+        UTLT_Warning("\t f1: %.9f seconds", elapsed_time);   
+        elapsed_time = (f2.tv_sec - start.tv_sec) +
+                (f2.tv_nsec - start.tv_nsec) / 1e9;
+        UTLT_Warning("\t f2: %.9f seconds", elapsed_time);   
+        elapsed_time = (f2.tv_sec - start.tv_sec) +
+                (f2.tv_nsec - start.tv_nsec) / 1e9;
+        UTLT_Warning("\t f3: %.9f seconds", elapsed_time);   
     }
+
     return status;
 }
 
