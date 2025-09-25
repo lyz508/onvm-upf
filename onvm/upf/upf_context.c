@@ -161,6 +161,21 @@ Status UpfPDRRegisterToSession(UpfSession *session, UpfPDR *pdr) {
     UTLT_Assert(session->pdr_list, return STATUS_ERROR, "PDR list not initialized");
 
     list_rpush(session->pdr_list, list_node_new(pdr));
+
+    // Register TEID to session if PDR has a TEID (for uplink or downlink)
+    if (pdr->pdi.flags.fTeid) {
+        uint32_t teid = pdr->pdi.fTeid.teid;
+        UTLT_Debug("Registering PDR with TEID: %u", teid);
+
+        UTLT_Assert(InsertTEIDtoSessionMap(teid, session) == STATUS_OK,
+            return STATUS_ERROR, "Failed to map TEID %u to Session", teid);
+
+        // Debug: Print current TEIDs in session
+        UTLT_Debug("Current TEID in session:");
+        for (int i = 0; i < session->teid_count; i++) {
+            UTLT_Debug(" - TEID[%d]: %u", i, session->teid_list[i]);
+        }
+    }
 }
 
 Status UpfFARRegisterToSession(UpfSession *session, UpfFAR * far) {

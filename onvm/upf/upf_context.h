@@ -30,6 +30,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#define MAX_NUM_OF_TEIDS 16
+
 typedef struct _UpfUeIp      UpfUeIp;
 
 // Rule structure dependent on UPDK
@@ -127,7 +129,10 @@ typedef struct _UpfSession {
     Pdn             pdn;
     UpfUeIp         ueIpv4;
     UpfUeIp         ueIpv6;
-    uint32_t        teid;
+
+    // uint32_t        teid;
+    uint32_t        teid_list[MAX_NUM_OF_TEIDS];  // in network byte order
+    uint8_t         teid_count;
 
     /* User location */
     Tai             tai;

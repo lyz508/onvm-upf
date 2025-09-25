@@ -608,6 +608,12 @@ GetPdrByTeid(struct rte_mbuf *pkt, uint32_t td) {
         pdr = (UpfPDR *)node->val;
         node = node->next;
         if (pdr->flags.pdi) {
+            if (pdr->pdi.flags.fTeid) {
+                if (pdr->pdi.fTeid.teid != td) {
+                    continue;
+                }
+            }
+
             if (pdr->pdi.flags.sourceInterface) {
                 if (SourceInterfaceToPort(pdr->pdi.sourceInterface) == pkt->port) {
                     char *ip_str = strstr(pdr->pdi.sdfFilter.flowDescription, "from");

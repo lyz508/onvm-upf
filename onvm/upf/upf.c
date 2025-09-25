@@ -427,6 +427,13 @@ Status InsertTEIDtoSessionMap(const uint32_t teid, UpfSession *session) {
     if (status >= 0) {
         return STATUS_ERROR;
     }
+
+    if (session->teid_count >= MAX_NUM_OF_TEIDS) {
+        UTLT_Error("Maximum number of TEIDs reached for this session");
+        return STATUS_ERROR;
+    }
+
+    session->teid_list[session->teid_count++] = teid;
     status = rte_hash_add_key_with_hash_data(teid_upf_session_map->hash,
                                              (const void *) &teid,
                                              cal_hash,
@@ -451,6 +458,14 @@ void TeidToUpfSessionMapFree(const uint32_t teid) {
                                                 cal_hash);
     if (status < 0) {
         UTLT_Error("Error deleting a TeidToUpfSessionMapFree");
+    }
+
+    for (int i=0; i < session->teid_count; i++) {
+        if (session->teid_list[i] == teid) {
+            session->teid_list[i] = session->teid_list[session->teid_count - 1];
+            session->teid_count--;
+            break;
+        }
     }
 }
 
